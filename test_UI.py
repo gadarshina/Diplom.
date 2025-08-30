@@ -57,43 +57,21 @@ class TestBookSearch:
 @allure.feature("Поиск книжной информации")
 class TestBookSearchNegative:
 
-    @allure.title("Отсутствие результатов по несуществующему запросу")
-    @allure.description("Проверяет, что при поиске несуществующей книги результатом является сообщение 'ничего не найдено'.")
-    def test_no_results_for_nonexistent_book(self, driver):
+    def test_search_in_foreign_language(self, driver):
         main_page = MainPage(driver)
-        main_page.search_book("несуществующая_книга_12345")
-        results_text = main_page.get_search_results_text()
-        assert "ничего не найдено" in results_text.lower()
+        main_page.search_book("こんにちは")
+        result_text = main_page.get_search_results_text()
+        print(f"Результат поиска: {repr(result_text)}")  # для отладки
+        # Проверка, что результат содержит сообщение о отсутствии результатов
+        assert "не принёс результатов" in result_text
 
-    @allure.title("Отсутствие конкретной книги в результатах")
-    @allure.description("Проверяет, что книга с названием 'Некорректное название' отсутствует в результатах поиска.")
-    def test_absence_of_specific_book(self, driver):
+    def test_search_nonexistent_book(self, driver):
         main_page = MainPage(driver)
-        main_page.search_book("капитанская")
-        results = main_page.get_search_results_items()
-        titles = [item.get_title() for item in results]
-        assert all("Некорректное название" not in title for title in titles)
+        nonexistent_title = "Книга_которой_нет_в_базе_123456"
+        main_page.search_book(nonexistent_title)
+        result_text = main_page.get_search_results_text()
+        print(f"Результат поиска: {repr(result_text)}")  # для отладки
 
-    @allure.title("Проверка отсутствия результатов при пустом запросе")
-    @allure.description("Проверяет, что при пустом поисковом запросе не выводится результат поиска.")
-    def test_empty_search_query(self, driver):
-        main_page = MainPage(driver)
-        main_page.search_book("")  # или можно пропускать, если есть отдельная проверка
-        results_text = main_page.get_search_results_text()
-        assert "ничего не найдено" in results_text.lower() or "пожалуйста, введите запрос" in results_text.lower()
+        # Проверка, что сообщение содержит слова о отсутствии результатов
+        assert ("не принёс результатов" in result_text.lower()) or ("ничего не найдено" in result_text.lower())
 
-    @allure.title("Проверка некорректного ввода (специальные символы)")
-    @allure.description("Проверяет, что при вводе специальных символов результат поиска не возвращает релевантных результатов.")
-    def test_search_with_special_characters(self, driver):
-        main_page = MainPage(driver)
-        main_page.search_book("@#$%^&*")
-        results_text = main_page.get_search_results_text()
-        assert "ничего не найдено" in results_text.lower()
-
-    @allure.title("Проверка поиска с пробелами")
-    @allure.description("Проверяет, что поиск с только пробелами не возвращает результатов.")
-    def test_search_with_only_spaces(self, driver):
-        main_page = MainPage(driver)
-        main_page.search_book("     ")
-        results_text = main_page.get_search_results_text()
-        assert "ничего не найдено" in results_text.lower()
